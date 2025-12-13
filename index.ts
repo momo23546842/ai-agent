@@ -13,9 +13,10 @@ async function getCityInput(rl: readline.Interface): Promise<string | null> {
   return new Promise((resolve) => {
     rl.question('Please enter a city name (or type "exit" to quit): ', (input) => {
       const city = input.trim();
+      const lowerCity = city.toLowerCase();
       
       // Check if user wants to exit
-      if (city.toLowerCase() === 'exit' || city.toLowerCase() === 'quit' || city.toLowerCase() === 'q') {
+      if (['exit', 'quit', 'q'].includes(lowerCity)) {
         resolve(null);
       } else {
         resolve(city);
@@ -63,7 +64,7 @@ async function main() {
     }
     
     // Validate city input
-    if (!city) {
+    if (city.length === 0) {
       console.log('Error: City name cannot be empty. Please try again.\n');
       continue;
     }
