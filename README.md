@@ -21,7 +21,7 @@ This project is an AI-powered weather assistant that demonstrates the use of AI 
 
 ## Features
 
-- ✨ **CLI Support**: Accept city input via command-line arguments or interactive prompt
+- ✨ **Continuous Interactive Mode**: Continuously query weather for multiple cities in one session
 - 🤖 **AI-Powered**: Uses Groq's Llama 3.3-70b-versatile model for natural language understanding
 - 🌡️ **Weather Information**: Provides temperature (in Celsius), conditions, and chance of rain
 - 🛠️ **Tool Integration**: Demonstrates AI tool calling with structured outputs
@@ -43,9 +43,10 @@ ai-agent/
 ### File Descriptions
 
 - **index.ts**: Main application file that:
-  - Handles CLI input (command-line arguments or interactive prompt)
+  - Provides continuous interactive mode for querying multiple cities
   - Initializes the AI agent with Groq model
   - Processes user requests and displays weather information
+  - Allows graceful exit with commands like "exit", "quit", or "q"
 
 - **tools.ts**: Defines AI tools that the agent can use:
   - `weather`: Fetches weather data for a given location
@@ -104,43 +105,37 @@ This compiles the TypeScript files to JavaScript in the `dist/` directory.
 
 ## Usage
 
-There are two ways to use the weather assistant:
+### Interactive Mode with Continuous Input
 
-### Method 1: Command-Line Arguments
-
-Pass the city name directly as a command-line argument:
-
-```bash
-npm start -- "New York"
-```
-
-Or with multiple words:
-
-```bash
-npm start -- "San Francisco"
-npm start -- "Sydney, Australia"
-```
-
-### Method 2: Interactive Prompt
-
-Run the application without arguments, and it will prompt you for the city name:
+Run the application to enter interactive mode, where you can continuously query weather for different cities:
 
 ```bash
 npm start
 ```
 
-Then enter the city when prompted:
+The application will continuously prompt you for city names. You can:
+- Enter any city name to get weather information
+- Type `exit`, `quit`, or `q` to exit the program
+- Press `Ctrl+C` to force quit at any time
 
-```
-Please enter a city name: London
-```
-
-### Example Output
+Example session:
 
 ```
 === Weather Assistant CLI ===
 
-Using city from command line: Tokyo
+Enter city names to get weather information.
+Type "exit", "quit", or "q" to quit the program.
+
+Please enter a city name (or type "exit" to quit): London
+
+Fetching weather information for: London
+
+User: What is the weather like in London?
+[Tool] Fetching weather for London...
+
+Agent: The weather in London is currently Cloudy with a temperature of 18°C. There's a 45% chance of rain today.
+
+Please enter a city name (or type "exit" to quit): Tokyo
 
 Fetching weather information for: Tokyo
 
@@ -148,7 +143,13 @@ User: What is the weather like in Tokyo?
 [Tool] Fetching weather for Tokyo...
 
 Agent: The weather in Tokyo is currently Sunny with a temperature of 28°C. There's a 15% chance of rain today. It's a beautiful day!
+
+Please enter a city name (or type "exit" to quit): exit
+
+Thank you for using Weather Assistant! Goodbye! 👋
 ```
+
+
 
 ## Project Architecture
 

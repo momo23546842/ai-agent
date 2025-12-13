@@ -5,47 +5,37 @@ import { weatherTools } from './tools';
 import * as readline from 'readline';
 
 /**
- * Get city input from command line arguments or prompt user interactively
- * @returns Promise<string> The city name
+ * Get city input from user interactively
+ * @param rl The readline interface to use
+ * @returns Promise<string | null> The city name, or null if user wants to exit
  */
-async function getCityInput(): Promise<string> {
-  // Check if city is provided as command line argument
-  const args = process.argv.slice(2);
-  
-  if (args.length > 0) {
-    const city = args.join(' ');
-    console.log(`Using city from command line: ${city}`);
-    return city;
-  }
-
-  // If no argument provided, prompt user interactively
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
-
+async function getCityInput(rl: readline.Interface): Promise<string | null> {
   return new Promise((resolve) => {
-    rl.question('Please enter a city name: ', (city) => {
-      rl.close();
-      resolve(city.trim());
+    rl.question('Please enter a city name (or type "exit" to quit): ', (input) => {
+      const city = input.trim();
+      
+      // Check if user wants to exit
+      if (city.toLowerCase() === 'exit' || city.toLowerCase() === 'quit' || city.toLowerCase() === 'q') {
+        resolve(null);
+      } else {
+        resolve(city);
+      }
     });
   });
 }
 
 async function main() {
   console.log('=== Weather Assistant CLI ===\n');
+  console.log('Enter city names to get weather information.');
+  console.log('Type "exit", "quit", or "q" to quit the program.\n');
   
-  // Get city input from CLI or interactive prompt
-  const city = await getCityInput();
-  
-  if (!city) {
-    console.error('Error: City name is required');
-    process.exit(1);
-  }
+  // Create readline interface for continuous input
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout
+  });
 
-  console.log(`\nFetching weather information for: ${city}\n`);
-
-  // 1. Define the Agent
+  // 1. Define the Agent (once, outside the loop)
   const agent = new ToolLoopAgent({
     // Use the Groq provider with Llama 3 model
     model: groq('llama-3.3-70b-versatile'),
@@ -60,18 +50,43 @@ async function main() {
     tools: weatherTools,
   });
 
-  // 2. Run the Agent
-  // The agent will automatically loop:
-  // Call LLM -> Call Tool -> Feed Result to LLM -> Final Answer
-  const userPrompt = `What is the weather like in ${city}?`;
-  console.log(`User: ${userPrompt}`);
+  // Continuous input loop
+  while (true) {
+    // Get city input from user
+    const city = await getCityInput(rl);
+    
+    // If user wants to exit
+    if (city === null) {
+      console.log('\nThank you for using Weather Assistant! Goodbye! 👋\n');
+      rl.close();
+      break;
+    }
+    
+    // Validate city input
+    if (!city) {
+      console.log('Error: City name cannot be empty. Please try again.\n');
+      continue;
+    }
 
-  const result = await agent.generate({
-    prompt: userPrompt,
-  });
+    console.log(`\nFetching weather information for: ${city}\n`);
 
-  // 3. Output the result
-  console.log(`\nAgent: ${result.text}`);
+    try {
+      // 2. Run the Agent
+      // The agent will automatically loop:
+      // Call LLM -> Call Tool -> Feed Result to LLM -> Final Answer
+      const userPrompt = `What is the weather like in ${city}?`;
+      console.log(`User: ${userPrompt}`);
+
+      const result = await agent.generate({
+        prompt: userPrompt,
+      });
+
+      // 3. Output the result
+      console.log(`\nAgent: ${result.text}\n`);
+    } catch (error) {
+      console.error(`Error fetching weather: ${error instanceof Error ? error.message : 'Unknown error'}\n`);
+    }
+  }
 }
 
 main().catch(console.error);
